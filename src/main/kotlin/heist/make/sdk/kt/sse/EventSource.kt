@@ -25,33 +25,33 @@ class EventSource : EventTarget {
         CONNECTING, OPEN, CLOSED
     }
 
-     constructor( uri : String) {
-         readyState = ReadyState.CONNECTING
-        connection = URL( uri ).openConnection() as HttpURLConnection
+    constructor( uri: String ) {
+        readyState = ReadyState.CONNECTING
+        connection = URL(uri).openConnection() as HttpURLConnection
         connection!!.inputStream.bufferedReader().use { reader ->
 
             readyState = ReadyState.OPEN
 
             var line = ""
             var finished = false
-             while( !finished ) {
+            while ( !finished ) {
 
-                 if( !reader.ready() ) {
-                     finished=true
-                     reader.close()
-                     break
-                 }
+                if ( !reader.ready() ) {
+                    finished = true
+                    reader.close()
+                    break
+                }
 
-                 line = reader.readLine()
-                 reader.read()
+                line = reader.readLine()
+                reader.read()
                 bffr.append( line.plus( "\n" ) )
-             }
+            }
         }
-     }
+    }
 
-    fun close(){
+    fun close() {
         connection?.disconnect()
-        readyState=ReadyState.CLOSED
+        readyState = ReadyState.CLOSED
     }
 
 }
