@@ -1,6 +1,7 @@
 package heist.make.sdk.kt.sse
 
 import heist.make.sdk.kt.event.Event
+import org.junit.jupiter.api.Assertions
 import kotlin.test.Test
 
 class EventSourceTest {
@@ -11,7 +12,14 @@ class EventSourceTest {
     }
 
     private fun handleMessage2( e: Event ) {
-        System.out.println( e.toString() )
+        Assertions.assertEquals(
+            "MessageEvent(\n" +
+                    "data= \n" +
+                    "data: Yahya!\n" +
+                    "data: this is data\n" +
+                    "data: I am a message\n" +
+                    ", type= message)\n", e.toString()
+        )
     }
 
     @Test

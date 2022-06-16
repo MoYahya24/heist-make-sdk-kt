@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets
 class EventSource : EventTarget {
 
     var bffr: StringBuffer = StringBuffer()
-    var connection: HttpURLConnection? = null;
+    private var connection: HttpURLConnection? = null;
     private val headers: Map<String, String>? = null
     var readyState = ReadyState.CLOSED
 
@@ -26,6 +26,7 @@ class EventSource : EventTarget {
     }
 
     constructor( uri: String ) {
+
         readyState = ReadyState.CONNECTING
         connection = URL(uri).openConnection() as HttpURLConnection
         connection!!.inputStream.bufferedReader().use { reader ->
@@ -46,13 +47,16 @@ class EventSource : EventTarget {
                 reader.read()
                 bffr.append( line.plus( "\n" ) )
             }
+
         }
+
     }
 
     fun close() {
         connection?.disconnect()
         readyState = ReadyState.CLOSED
     }
+
 
 }
 
