@@ -2,6 +2,7 @@ package heist.make.sdk.kt.event
 
 import heist.make.sdk.kt.event.Event
 import heist.make.sdk.kt.event.EventTarget
+import kotlinx.serialization.Serializable
 
 
 /**
@@ -11,6 +12,8 @@ import heist.make.sdk.kt.event.EventTarget
  *
  * @property data is a String where the text message sent by the server is stored.
  */
+
+@Serializable
 class MessageEvent : Event {
 
     private var data: String? = null

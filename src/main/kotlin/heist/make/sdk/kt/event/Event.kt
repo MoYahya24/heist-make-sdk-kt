@@ -11,6 +11,8 @@ import kotlinx.serialization.Serializable
  *
  * @property target an instance of the class EventTarget.
  */
+
+@Serializable
 open class Event {
 
     private var type: String? = null

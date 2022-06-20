@@ -22,7 +22,7 @@ import kotlin.test.Test
                     "data: Yahya!\n" +
                     "data: this is data\n" +
                     "data: I am a message\n" +
-                    ", type= message)\n", e.toString()
+                    ", type= message)\n", Json.encodeToString(e)
         )
     }
 

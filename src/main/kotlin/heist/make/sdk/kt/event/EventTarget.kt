@@ -1,10 +1,13 @@
 package heist.make.sdk.kt.event
 
+import kotlinx.serialization.Serializer
+
 
 /**
  * The EventTarget class impplements methods that add and remove event listeners to type-specific events.
  */
 
+@kotlinx.serialization.Serializable
 open class EventTarget {
 
     private val listeners: MutableMap<String, MutableList<( ( e: Event ) -> Unit )>>? = HashMap();
