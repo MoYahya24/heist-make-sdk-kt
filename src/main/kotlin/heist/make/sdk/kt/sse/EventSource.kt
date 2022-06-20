@@ -14,9 +14,16 @@ import java.net.http.HttpResponse
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
+/**
+ * The EventSource class connects to a Sever and receives incoming events.
+ *
+ * @constructor connects the URL and reads the incoming SSE messages using a BufferedReader.
+ *
+ * @property ReadyState enum class that indicates the status of the connection.
+ */
 class EventSource : EventTarget {
 
-    var bffr: StringBuffer = StringBuffer()
+    private var content = ""
     private var connection: HttpURLConnection? = null;
     private val headers: Map<String, String>? = null
     var readyState = ReadyState.CLOSED
@@ -27,6 +34,7 @@ class EventSource : EventTarget {
 
     constructor( uri: String ) {
 
+        var bffr : StringBuffer = StringBuffer()
         readyState = ReadyState.CONNECTING
         connection = URL(uri).openConnection() as HttpURLConnection
         connection!!.inputStream.bufferedReader().use { reader ->
@@ -49,14 +57,28 @@ class EventSource : EventTarget {
             }
 
         }
-
+        content = bffr.toString()
     }
 
+    /**
+     * closes the connection to the server.
+     */
     fun close() {
         connection?.disconnect()
         readyState = ReadyState.CLOSED
     }
 
+    fun getContent(): String? {
+        return content
+    }
+
+    fun getConnection(): HttpURLConnection? {
+        return connection
+    }
+
+    fun getHeaders(): Map<String, String>? {
+        return headers
+    }
 
 }
 
