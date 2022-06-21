@@ -22,6 +22,8 @@ class EventSourceTest {
         var ev = EventSource( "http://localhost:8080/event-stream" )
         ev.addEventListener( "message", ::handleMessage )
 
+
+
     }
 
 }

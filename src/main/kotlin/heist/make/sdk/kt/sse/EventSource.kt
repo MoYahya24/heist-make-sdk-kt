@@ -3,6 +3,7 @@ package heist.make.sdk.kt.sse
 import heist.make.sdk.kt.event.EventTarget
 import heist.make.sdk.kt.event.MessageEvent
 import heist.make.sdk.kt.sse.EventSource.ReadyState
+import kotlinx.coroutines.*
 import java.io.BufferedReader
 import java.net.HttpURLConnection
 import java.net.URL
@@ -26,25 +27,24 @@ class EventSource : EventTarget {
         CONNECTING, OPEN, CLOSED
     }
 
+
     constructor( uri: String ) {
 
-        coroutineScope {
-            launch {
-                connect( uri )
-            }
+        GlobalScope.launch {
+            connect(uri)
         }
-
 
     }
 
-     suspend fun connect( uri : String ) {
+       suspend fun connect( uri : String ) {
 
-        readyState = ReadyState.CONNECTING
+           withContext(Dispatchers.IO) {
+               readyState = ReadyState.CONNECTING
+               connection = URL( uri ).openConnection() as HttpURLConnection
+               connection!!.setRequestProperty( "Accept", "text/event-stream" )
+               connection!!.inputStream.bufferedReader().use{ handleInputStream( it ) }
+           }
 
-        connection = URL( uri ).openConnection() as HttpURLConnection
-        connection!!.setRequestProperty( "Accept", "text/event-stream" )
-        connection!!.inputStream.bufferedReader().use { handleInputStream( it ) }
-         
     }
 
     /**
@@ -56,30 +56,32 @@ class EventSource : EventTarget {
      * empty space (indicates the end of the Server-Sent Event)
      *
      */
-    fun handleInputStream( reader : BufferedReader ) {
+      fun handleInputStream( reader : BufferedReader )  {
 
-        readyState = ReadyState.OPEN
+            readyState = ReadyState.OPEN
 
-        var type : String = "message";
-        var data : String = "";
+            var type : String = "message";
+            var data : String = "";
 
-        while ( readyState == ReadyState.OPEN ) {
+            while ( readyState == ReadyState.OPEN ) {
 
-            val line = reader.readLine() // Blocking function. Read stream until \n is found
+                val line = reader.readLine() // Blocking function. Read stream until \n is found
 
-            when {
-                line.startsWith("event: " ) -> { // get event name
-                    type = line.substring( 6 ).trim();
+                when {
+                    line.startsWith("event: " ) -> { // get event name
+                        type = line.substring( 6 ).trim();
+                    }
+                    line.startsWith("data: " ) -> { // get data
+                        data = line.substring( 5 ).trim();
+                    }
+                    line.isEmpty() -> { // empty line, finished block. Emit the event
+                        this.dispatchEvent( MessageEvent( type, this, data ) )
+                    }
                 }
-                line.startsWith("data: " ) -> { // get data
-                    data = line.substring( 5 ).trim();
-                }
-                line.isEmpty() -> { // empty line, finished block. Emit the event
-                    this.dispatchEvent( MessageEvent( type, this, data ) )
-                }
+
             }
 
-        }
+
 
     }
 
