@@ -1,18 +1,11 @@
 package heist.make.sdk.kt.sse
 
 import heist.make.sdk.kt.event.EventTarget
+import heist.make.sdk.kt.event.MessageEvent
+import heist.make.sdk.kt.sse.EventSource.ReadyState
 import java.io.BufferedReader
-import java.io.InputStream
-import java.io.InputStreamReader
 import java.net.HttpURLConnection
-import java.net.URI
 import java.net.URL
-import java.net.http.HttpClient
-import java.net.http.HttpHeaders
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets
 
 /**
  * The EventSource class connects to a Sever and receives incoming events.
@@ -25,7 +18,8 @@ class EventSource : EventTarget {
 
     private var content = ""
     private var connection: HttpURLConnection? = null;
-    private val headers: Map<String, String>? = null
+    private var headers: Map<String, String>? = null
+
     var readyState = ReadyState.CLOSED
 
     public enum class ReadyState {
@@ -34,30 +28,59 @@ class EventSource : EventTarget {
 
     constructor( uri: String ) {
 
-        var bffr : StringBuffer = StringBuffer()
+        coroutineScope {
+            launch {
+                connect( uri )
+            }
+        }
+
+
+    }
+
+     suspend fun connect( uri : String ) {
+
         readyState = ReadyState.CONNECTING
-        connection = URL(uri).openConnection() as HttpURLConnection
-        connection!!.inputStream.bufferedReader().use { reader ->
 
-            readyState = ReadyState.OPEN
+        connection = URL( uri ).openConnection() as HttpURLConnection
+        connection!!.setRequestProperty( "Accept", "text/event-stream" )
+        connection!!.inputStream.bufferedReader().use { handleInputStream( it ) }
+         
+    }
 
-            var line = ""
-            var finished = false
-            while ( !finished ) {
+    /**
+     * Handles the input stream reader wheneven a message is sent.
+     *
+     * The expected Server-Sent Event format is as follows.
+     * name: [Optional]
+     * data: []
+     * empty space (indicates the end of the Server-Sent Event)
+     *
+     */
+    fun handleInputStream( reader : BufferedReader ) {
 
-                if ( !reader.ready() ) {
-                    finished = true
-                    reader.close()
-                    break
+        readyState = ReadyState.OPEN
+
+        var type : String = "message";
+        var data : String = "";
+
+        while ( readyState == ReadyState.OPEN ) {
+
+            val line = reader.readLine() // Blocking function. Read stream until \n is found
+
+            when {
+                line.startsWith("event: " ) -> { // get event name
+                    type = line.substring( 6 ).trim();
                 }
-
-                line = reader.readLine()
-                reader.read()
-                bffr.append( line.plus( "\n" ) )
+                line.startsWith("data: " ) -> { // get data
+                    data = line.substring( 5 ).trim();
+                }
+                line.isEmpty() -> { // empty line, finished block. Emit the event
+                    this.dispatchEvent( MessageEvent( type, this, data ) )
+                }
             }
 
         }
-        content = bffr.toString()
+
     }
 
     /**

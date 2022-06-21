@@ -5,7 +5,7 @@ plugins {
     kotlin("plugin.serialization") version "1.7.0"
 }
 
-group = "org.example"
+group = "co.heist.make.sdk"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -14,8 +14,8 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
-
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
 }
 
 tasks.test {
@@ -23,5 +23,5 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "17"
 }

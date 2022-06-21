@@ -18,7 +18,7 @@ class MessageEvent : Event {
 
     private var data: String? = null
 
-    constructor( target: EventTarget, data: String )  : super( "message", target ) {
+    constructor( type : String, target : EventTarget, data : String )  : super( type, target ) {
         this.data = data
     }
 
